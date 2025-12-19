@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bulk Certificate Generator with QR</title>
+
+<style>
+body {
+    font-family: "Georgia", serif;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.controls {
+    margin: 20px;
+}
+
+/* ===== CERTIFICATE ===== */
+.certificate {
+    width: 297mm;          /* A4 landscape width */
+    height: 210mm;         /* A4 landscape height */
+    margin: 0 auto;
+    background: #fff;
+    border: 6px solid #2c3e50;
+    padding: 30mm;
+    box-sizing: border-box;
+    position: relative;
+
+    page-break-after: always;
+    page-break-inside: avoid;
+}
+
+/* ===== ELEMENTS ===== */
+.logo {
+    width: 120px;
+}
+
+.qr {
+    position: absolute;
+    right: 30mm;
+    top: 25mm;
+    width: 100px;
+}
+
+.cert-no {
+    position: absolute;
+    left: 30mm;
+    top: 25mm;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+h1 {
+    font-size: 42px;
+    margin-top: 30px;
+}
+
+.subtitle {
+    font-size: 20px;
+    margin: 20px 0;
+}
+
+.name {
+    font-size: 38px;
+    font-weight: bold;
+    margin: 30px 0;
+    color: #2c3e50;
+}
+
+.footer {
+    position: absolute;
+    bottom: 30mm;
+    left: 30mm;
+    right: 30mm;
+    display: flex;
+    justify-content: space-between;
+}
+
+.sign {
+    text-align: center;
+}
+
+.controls {
+    margin-bottom: 20px;
+}
+
+
+
+textarea {
+    width: 400px;
+    height: 150px;
+    padding: 10px;
+    font-size: 15px; 
+}
+
+.line {
+    width: 200px;
+    border-top: 2px solid #000;
+    margin: 10px auto;
+}
+
+/* ===== PRINT SETTINGS ===== */
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 0;
+    }
+
+    body {
+        margin: 0;
+    }
+
+    .controls {
+        display: none;
+    }
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="controls">
+    <h2>Paste Candidate Names (One per line)</h2>
+    <textarea id="names" placeholder="Rahul Kumar
+Anjali Singh
+Mohit Verma"></textarea><br>
+    <button onclick="generateCertificates()">Generate Certificates</button>
+    <button onclick="window.print()">Print All</button>
+</div>
+
+<div id="certificates"></div>
+
+<script>
+function generateCertificates() {
+    const namesText = document.getElementById("names").value.trim();
+    if (namesText === "") {
+        alert("Please enter names");
+        return;
+    }
+
+    const names = namesText.split("\n");
+    const container = document.getElementById("certificates");
+    container.innerHTML = "";
+
+    const today = new Date();
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    const dateStr = today.toLocaleDateString('en-IN', options);
+
+    names.forEach((name, index) => {
+        if (name.trim() !== "") {
+
+            // 🔢 Unique Certificate Number
+            const certNo = "GBU-" + today.getFullYear() + "-" + String(index + 1).padStart(4, '0');
+
+            // 📦 QR Data
+            const qrData = `Certificate No: ${certNo} | Name: ${name.trim()}`;
+
+            // 🌐 Online QR Generator (no library needed)
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`;
+
+            const cert = document.createElement("div");
+            cert.className = "certificate";
+
+            cert.innerHTML = `
+                <div class="cert-no">Certificate No: ${certNo}</div>
+                <img class="qr" src="${qrUrl}" alt="QR Code">
+
+                <img class="logo" src="GBU.png" alt="Logo">
+
+                <h1>CERTIFICATE OF ACHIEVEMENT</h1>
+
+                <div class="subtitle">This is proudly presented to</div>
+
+                <div class="name">${name.trim()}</div>
+
+                <div class="subtitle">
+                    For successfully completing the program<br>
+                    This is only Prototype.
+                </div>
+
+                <div class="footer">
+                    <div class="sign">
+                        
+                        ${dateStr}
+                    </div>
+                    <div class="sign">
+                        <img class="logo" src="singfake.png" alt="Sign"><br>
+                        <div class="line"></div>
+                        
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(cert);
+        }
+    });
+}
+</script>
+
+</body>
+</html>
